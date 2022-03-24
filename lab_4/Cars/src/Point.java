@@ -2,7 +2,7 @@ public class Point {
 
     public static Integer[] types = {0, 1, 2, 3, 5};
     public int type = 0;
-    public int speed = 0;
+    public int speed;
     public Point next;
     public Point prev;
     public Point left;
@@ -11,71 +11,81 @@ public class Point {
     
 
     public void move() {
-        Point curNext = this;
         Point curPrev = this;
-        Point other = left == null ? this.right : this.left;
+        Point otherNext = left == null ? this.right : this.left;
+        Point otherPrev = otherNext;
         int d_prev = 0;
-        int d_next = 0;  // jak dodajesz pojazd, to niech ma predkosc max
         int d_other_prev = 0;
         int d_other_next = 0;
 
-        //  calculation free space
-        for (int i = 0; i <= 8; ++i) {
-            if (curNext.next.type != 0 && curNext.next.type != 5) {
-                d_next = i;
-                break;
-            }
-        }
-        for (int i = 0; i <= 8; ++i) {
-            if (curPrev.prev.type != 0 && curPrev.prev.type != 5) {
-                d_prev = i;
-                break;
-            }
-            curPrev = curPrev.next;
-        }
-        
-
-
-
-
-
-
-        if (right == null) {  // manewr wyprzedzania
-            for (int i = 0; i <= speed; ++i) {
-                if (curNext.prev.type == 0 || curNext.next.type == 5) {
-                    d_next = i;
+        // ochydny ten kod, ale bywa i tak
+        if (type != 0 && type != 5 && moved == false) {
+            //  calculation free space
+            for (int i = 0; i <= 8; ++i) {
+                if (curPrev.prev.type != 0 || i == 8) {
+                    d_prev = i;
                     break;
                 }
+                curPrev = curPrev.prev;
             }
-            for (int i = 0; i <= speed; ++i) {
-                if (curNext.next.type == 0 || curNext.next.type == 5) {
-                    d_next = i;
+            for (int i = 0; i <= 8; ++i) {
+                if (otherNext.next.type != 0 || i == 8) {
+                    d_other_next = i;
                     break;
                 }
+                otherNext = otherNext.next;
             }
-            curNext = curNext.next;
-        }
+            for (int i = 0; i <= 8; ++i) {
+                if (otherPrev.prev.type != 0 || i == 8) {
+                    d_other_prev = i;
+                    break;
+                }
+                otherPrev = otherPrev.prev;
+            }
 
-
-        if (type == 1 && moved == false) {
+            if (this.right != null && this.right.type == 0) {
+                if (d_prev >= 7 && d_other_prev >= 7 && d_other_next >= speed) {
+                    Point newPoint = right;
+                    for (int i=0; i<speed-1; ++i)
+                        newPoint = newPoint.next;
+                    newPoint.type = type;
+                    newPoint.speed = speed;
+                    this.moved = true;
+                    newPoint.moved = true;
+                    this.type = 0;
+                    return;
+                }
+            }
+            if (this.left != null && this.left.type == 0) {  // manewr wyprzedzania
+                if (speed < this.getMaxSpeed() && d_prev >= 7 && d_other_prev >= 7 && d_other_next >= speed) {
+                    Point newPoint = left;
+                    for (int i=0; i<speed-1; ++i)
+                        newPoint = newPoint.next;
+                    newPoint.type = type;
+                    newPoint.speed = speed+1;
+                    this.moved = true;
+                    newPoint.moved = true;
+                    this.type = 0;
+                    return;
+                }
+            }
             // acceleration
-            speed = (speed < 5) ? ++speed : speed;
-
-            // slowing down
+            speed = (speed < this.getMaxSpeed()) ? speed+1 : speed;
+            Point newPoint = this;
             for (int i = 0; i <= speed; ++i) {
-                if (curNext.next.type == 1 || i == speed) {
+                if (newPoint.next.type != 0 || i == speed) {
                     speed = i;
                     break;
                 }
-                curNext = curNext.next;
+                newPoint = newPoint.next;
             }
-
+        
             // actual moving
+            newPoint.type = type;
             type = 0;
-            curNext.type = 1;
-            curNext.speed = speed;
+            newPoint.speed = speed;
             moved = true;
-            curNext.moved = true;
+            newPoint.moved = true;
         }
     }
 

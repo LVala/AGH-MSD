@@ -39,8 +39,8 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
             for (int y = 2; y < points[x].length-3; ++y) {
                 if (y == 2)
                     points[x][y].right = points[x][y+1];
-                if (y == points[x].length-4)
-                    points[x][y].right = points[x][y-1];
+                if (y == 3)
+                    points[x][y].left = points[x][y-1];
                 points[x][y].next = points[(x+1)%points.length][y];
                 points[x][y].prev = points[(points.length+x-1)%points.length][y];
             }
@@ -48,11 +48,11 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 
     public void iteration() {
         for (int x = 0; x < points.length; ++x)
-            for (int y = 0; y < points[x].length; ++y)
+            for (int y = 2; y < points[x].length-3; ++y)
                 points[x][y].moved = false;
 
         for (int x = 0; x < points.length; ++x) {
-            for (int y = 0; y < points[x].length; ++y) {
+            for (int y = 2; y < points[x].length-3; ++y) {
                 points[x][y].move();
             }
         }
@@ -127,9 +127,11 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
         if ((x < points.length) && (x > 0) && (y < points[x].length) && (y > 0)) {
             if(editType==0){
                 points[x][y].clicked();
+                points[x][y].speed = points[x][y].getMaxSpeed();
             }
             else {
-                points[x][y].type= editType;
+                points[x][y].type = editType;
+                points[x][y].speed = points[x][y].getMaxSpeed();
             }
             this.repaint();
         }
