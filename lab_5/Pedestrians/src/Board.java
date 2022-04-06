@@ -11,9 +11,12 @@ import javax.swing.event.MouseInputListener;
 
 public class Board extends JComponent implements MouseInputListener, ComponentListener {
 	private static final long serialVersionUID = 1L;
+    public static final String[] neigh_types = {"Moore", "von Neumann"};
 	private Point[][] points;
 	private int size = 10;
 	public int editType=0;
+    public int neigh_type = 1;
+    public int cur_neigh_type = 1;
 
 	public Board(int length, int height) {
 		addMouseListener(this);
@@ -24,6 +27,10 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 	}
 
 	public void iteration() {
+        for (int x = 1; x < points.length - 1; ++x)
+			for (int y = 1; y < points[x].length - 1; ++y)
+				points[x][y].blocked = false;
+
 		for (int x = 1; x < points.length - 1; ++x)
 			for (int y = 1; y < points[x].length - 1; ++y)
 				points[x][y].move();
@@ -35,6 +42,11 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 			for (int y = 0; y < points[x].length; ++y) {
 				points[x][y].clear();
 			}
+
+        if (neigh_type != cur_neigh_type) {
+            initNeighbours();
+            cur_neigh_type = neigh_type;
+        }
 		calculateField();
 		this.repaint();
 	}
@@ -46,22 +58,30 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 			for (int y = 0; y < points[x].length; ++y)
 				points[x][y] = new Point();
 
-		for (int x = 1; x < points.length-1; ++x) {
+		initNeighbours();
+	}
+
+    private void initNeighbours() {
+        for (int x = 1; x < points.length-1; ++x) {
 			for (int y = 1; y < points[x].length-1; ++y) {	
+                points[x][y].neighbors.clear();;
                 // Moore neighborhood
-                for (int i=-1; i<2; ++i)
-                    for (int j=-1; j<2; ++j)
-                        if (!(i == 0 && j == 0))
-                            points[x][y].addNeighbor(points[x+i][y+j]);
-                
+                if (neigh_type == 1) {
+                    for (int i=-1; i<2; ++i)
+                        for (int j=-1; j<2; ++j)
+                            if (!(i == 0 && j == 0))
+                                points[x][y].addNeighbor(points[x+i][y+j]);
+                }
+                else if (neigh_type == 2) {
                 // von Neumann neighborhood
-                // points[x][y].addNeighbor(points[x+1][y]);
-                // points[x][y].addNeighbor(points[x+1][y]);
-                // points[x][y].addNeighbor(points[x][y+1]);
-                // points[x][y].addNeighbor(points[x][y-1]);
+                    points[x][y].addNeighbor(points[x+1][y]);
+                    points[x][y].addNeighbor(points[x-1][y]);
+                    points[x][y].addNeighbor(points[x][y+1]);
+                    points[x][y].addNeighbor(points[x][y-1]);
+                }
             }
 		}	
-	}
+    }
 	
 	private void calculateField(){
         ArrayList<Point> toCheck = new ArrayList<Point>();
@@ -69,7 +89,10 @@ public class Board extends JComponent implements MouseInputListener, ComponentLi
 			for (int y = 1; y < points[x].length-1; ++y) {
                 if (points[x][y].type == 2) {
                     points[x][y].staticField = 0;
-                    points[x][y].neighbors.forEach((neigh) -> {toCheck.add(neigh);});
+                    points[x][y].neighbors.forEach((neigh) -> {
+                        if (neigh.type != 2)
+                            toCheck.add(neigh);
+                    });
                 }
             }
         }
