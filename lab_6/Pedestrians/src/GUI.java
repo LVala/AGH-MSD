@@ -106,6 +106,7 @@ public class GUI extends JPanel implements ActionListener, ChangeListener {
                 board.neigh_type = switch((String)neighType.getSelectedItem()) {
                     case "Moore" -> 1;
                     case "von Neumann" -> 2;
+                    case "Moore improved" -> 3;
                     default -> 1;
                 };
 			}
